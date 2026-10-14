@@ -1,595 +1,322 @@
-```html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-<title>Ninja Survival</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#101b10">
+<title>Ninja Survival Unlimited Ninjas</title>
 
 <style>
-*{
-    box-sizing:border-box;
-    user-select:none;
-    -webkit-user-select:none;
-    touch-action:none;
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
-body{
-    margin:0;
-    overflow:hidden;
-    background:#050505;
-    font-family:Arial,sans-serif;
-    color:white;
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    inset: 0;
+    background: #101010;
+    color: white;
+    font-family: Arial, sans-serif;
+    touch-action: none;
+    overscroll-behavior: none;
 }
 
-#game{
-    width:100vw;
-    height:100vh;
-    position:relative;
-    overflow:hidden;
-    background:radial-gradient(circle at center,#252525,#080808 75%);
+canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: #101b10;
+    touch-action: none;
 }
 
-/* MAIN NINJA */
-
-#player{
-    position:absolute;
-    width:48px;
-    height:58px;
-    background:#151515;
-    border:3px solid white;
-    border-radius:12px;
-    z-index:10;
-    box-shadow:0 0 15px rgba(255,255,255,.4);
+#hud {
+    position: fixed;
+    top: max(8px, env(safe-area-inset-top));
+    left: max(8px, env(safe-area-inset-left));
+    z-index: 10;
+    padding: 8px 11px;
+    border: 1px solid rgba(0,255,153,.35);
+    border-radius: 11px;
+    background: rgba(0,0,0,.8);
+    font-size: 13px;
+    line-height: 1.5;
+    pointer-events: none;
+    white-space: nowrap;
 }
 
-#player:before{
-    content:"";
-    position:absolute;
-    width:38px;
-    height:28px;
-    left:2px;
-    top:-17px;
-    background:#222;
-    border:3px solid #aaa;
-    border-radius:50%;
+#message {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+    width: max-content;
+    max-width: 85vw;
+    padding: 11px 15px;
+    border: 2px solid #00ff99;
+    border-radius: 14px;
+    background: rgba(0,0,0,.94);
+    font-size: clamp(14px, 3.5vw, 22px);
+    font-weight: bold;
+    text-align: center;
+    display: none;
+    pointer-events: none;
 }
 
-#player:after{
-    content:"• •";
-    position:absolute;
-    left:10px;
-    top:-10px;
-    color:#ff3333;
-    font-size:18px;
-    font-weight:bold;
+.controls {
+    position: fixed;
+    left: max(10px, env(safe-area-inset-left));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: 20;
+    width: 144px;
+    height: 144px;
+    pointer-events: none;
 }
 
-/* EXTRA NINJAS */
-
-.ninja{
-    position:absolute;
-    width:42px;
-    height:52px;
-    border-radius:12px;
-    z-index:9;
-    pointer-events:none;
-    transition:box-shadow .2s;
+.btn {
+    position: absolute;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    border-radius: 12px;
+    background: rgba(255,255,255,.22);
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    touch-action: none;
+    pointer-events: auto;
 }
 
-.ninja:before{
-    content:"";
-    position:absolute;
-    width:34px;
-    height:25px;
-    left:1px;
-    top:-15px;
-    border-radius:50%;
+.btn:active {
+    background: rgba(0,255,153,.6);
 }
 
-.ninja:after{
-    content:"• •";
-    position:absolute;
-    left:8px;
-    top:-8px;
-    font-size:15px;
-    color:white;
+.up { left: 49px; top: 0; }
+.down { left: 49px; bottom: 0; }
+.left { left: 0; top: 49px; }
+.right { right: 0; top: 49px; }
+
+#attack {
+    position: fixed;
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(20px, env(safe-area-inset-bottom));
+    z-index: 20;
+    width: clamp(72px, 17vw, 92px);
+    height: clamp(72px, 17vw, 92px);
+    padding: 0;
+    border: 3px solid white;
+    border-radius: 50%;
+    background: #e91e63;
+    color: white;
+    font-size: clamp(12px, 3vw, 17px);
+    font-weight: bold;
+    touch-action: none;
 }
 
-/* NINJA 2 */
-
-#ninja2{
-    background:#063d91;
-    border:3px solid #2388ff;
-    box-shadow:0 0 18px #0088ff;
-    display:none;
+#attack:active {
+    background: #ff4081;
+    transform: scale(.94);
 }
 
-#ninja2:before{
-    background:#08204a;
-    border:3px solid #2388ff;
+#gameover {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    background: rgba(0,0,0,.92);
+    text-align: center;
+    touch-action: pan-y;
 }
 
-/* NINJA 3 */
-
-#ninja3{
-    background:#08751c;
-    border:3px solid #38ff55;
-    box-shadow:0 0 18px #00ff44;
-    display:none;
+#gameover h1 {
+    color: #ff3030;
+    font-size: clamp(30px, 8vw, 48px);
+    margin: 10px 0;
 }
 
-#ninja3:before{
-    background:#063d0d;
-    border:3px solid #38ff55;
+#gameover p {
+    margin: 6px;
+    font-size: clamp(15px, 4vw, 20px);
 }
 
-/* ATTACK EFFECT */
-
-.ninjaAttack{
-    animation:ninjaHit .15s;
+#restart {
+    min-height: 46px;
+    margin-top: 10px;
+    padding: 12px 30px;
+    border: 0;
+    border-radius: 12px;
+    background: #00cc66;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    touch-action: manipulation;
 }
 
-@keyframes ninjaHit{
-    50%{
-        transform:scale(1.25);
+@media (max-width: 600px) {
+    #hud {
+        padding: 6px 8px;
+        font-size: 11px;
+        line-height: 1.42;
+        border-radius: 9px;
+    }
+
+    .controls {
+        transform: scale(.9);
+        transform-origin: bottom left;
+    }
+
+    #message {
+        top: 17%;
+        padding: 9px 12px;
     }
 }
 
-/* ENEMY */
-
-.enemy{
-    position:absolute;
-    width:44px;
-    height:52px;
-    background:#8b1111;
-    border:3px solid #ff3333;
-    border-radius:10px;
-    z-index:5;
-    box-shadow:0 0 12px rgba(255,0,0,.6);
-}
-
-.enemy:before{
-    content:"";
-    position:absolute;
-    width:34px;
-    height:25px;
-    left:2px;
-    top:-15px;
-    background:#401010;
-    border:3px solid #ff5555;
-    border-radius:50%;
-}
-
-.enemy:after{
-    content:"• •";
-    position:absolute;
-    left:9px;
-    top:-8px;
-    color:white;
-    font-size:15px;
-}
-
-/* ENEMY HP */
-
-.enemyHP{
-    position:absolute;
-    width:50px;
-    height:7px;
-    left:-6px;
-    top:-28px;
-    background:#220000;
-    border:1px solid white;
-    border-radius:5px;
-    overflow:hidden;
-    z-index:30;
-}
-
-.enemyHPFill{
-    width:100%;
-    height:100%;
-    background:#20e64b;
-    transition:.15s;
-}
-
-/* BOSS */
-
-.boss{
-    position:absolute;
-    width:90px;
-    height:105px;
-    background:#5b00a8;
-    border:5px solid #d000ff;
-    border-radius:18px;
-    z-index:8;
-    box-shadow:0 0 30px #b000ff,0 0 60px #7000ff;
-    animation:bossGlow .6s infinite alternate;
-}
-
-@keyframes bossGlow{
-    from{transform:scale(1)}
-    to{transform:scale(1.05)}
-}
-
-.boss:before{
-    content:"";
-    position:absolute;
-    width:65px;
-    height:45px;
-    left:7px;
-    top:-28px;
-    background:#300050;
-    border:4px solid #e000ff;
-    border-radius:50%;
-}
-
-.boss:after{
-    content:"👑";
-    position:absolute;
-    left:24px;
-    top:-48px;
-    font-size:35px;
-}
-
-/* BOSS HP */
-
-.bossHP{
-    position:absolute;
-    width:110px;
-    height:11px;
-    left:-15px;
-    top:-65px;
-    background:#220000;
-    border:2px solid white;
-    border-radius:6px;
-    overflow:hidden;
-}
-
-.bossHPFill{
-    width:100%;
-    height:100%;
-    background:#ff1744;
-}
-
-/* HUD */
-
-#hud{
-    position:absolute;
-    top:15px;
-    left:15px;
-    z-index:50;
-    font-size:18px;
-    line-height:28px;
-    text-shadow:0 2px 5px black;
-}
-
-#healthBox{
-    width:240px;
-    height:22px;
-    border:2px solid white;
-    background:#222;
-    border-radius:5px;
-    overflow:hidden;
-}
-
-#health{
-    width:100%;
-    height:100%;
-    background:#20e64b;
-}
-
-#coins{color:#ffd700}
-#level{color:#00d9ff}
-#kills{color:#ff9d00}
-#enemyCount{color:#ff4444}
-#ninjaCount{color:#38ff55}
-
-/* TOUCH CONTROLS */
-
-#controls{
-    position:absolute;
-    bottom:20px;
-    left:20px;
-    z-index:60;
-}
-
-.controlRow{
-    display:flex;
-    justify-content:center;
-}
-
-.moveBtn{
-    width:65px;
-    height:65px;
-    margin:4px;
-    border-radius:15px;
-    border:2px solid #aaa;
-    background:rgba(30,30,30,.85);
-    color:white;
-    font-size:28px;
-    font-weight:bold;
-}
-
-.moveBtn:active{
-    background:#555;
-    transform:scale(.9);
-}
-
-/* ATTACK */
-
-#attack{
-    position:absolute;
-    right:25px;
-    bottom:35px;
-    z-index:70;
-    width:110px;
-    height:110px;
-    border-radius:50%;
-    background:#8b1111;
-    border:4px solid #ff5555;
-    color:white;
-    font-size:20px;
-    font-weight:bold;
-    box-shadow:0 0 15px red;
-}
-
-#attack:active{
-    transform:scale(.9);
-    background:#ff2222;
-}
-
-/* MESSAGES */
-
-#unlockMessage{
-    position:absolute;
-    left:50%;
-    top:28%;
-    transform:translate(-50%,-50%);
-    z-index:150;
-    display:none;
-    text-align:center;
-    font-size:34px;
-    font-weight:bold;
-    color:#38ff55;
-    text-shadow:0 0 15px #00ff44,0 0 30px #00ff44;
-    white-space:nowrap;
-}
-
-#bossMessage{
-    position:absolute;
-    left:50%;
-    top:18%;
-    transform:translateX(-50%);
-    color:#e000ff;
-    font-size:32px;
-    font-weight:bold;
-    text-shadow:0 0 15px #ff00ff;
-    display:none;
-    z-index:80;
-    text-align:center;
-}
-
-/* HIT TEXT */
-
-.hit{
-    position:absolute;
-    color:#ff3333;
-    font-size:24px;
-    font-weight:bold;
-    z-index:100;
-    pointer-events:none;
-    animation:hitUp .5s forwards;
-}
-
-@keyframes hitUp{
-    from{
-        opacity:1;
-        transform:translateY(0);
+@media (max-height: 450px) {
+    #hud {
+        padding: 4px 7px;
+        font-size: 10px;
+        line-height: 1.32;
     }
-    to{
-        opacity:0;
-        transform:translateY(-35px);
+
+    .controls {
+        transform: scale(.7);
+        transform-origin: bottom left;
+        bottom: max(4px, env(safe-area-inset-bottom));
+    }
+
+    #attack {
+        width: 64px;
+        height: 64px;
+        right: max(10px, env(safe-area-inset-right));
+        bottom: max(7px, env(safe-area-inset-bottom));
+        font-size: 11px;
+    }
+
+    #message {
+        top: 10%;
     }
 }
-
-/* START */
-
-.screen{
-    position:absolute;
-    inset:0;
-    background:rgba(0,0,0,.94);
-    z-index:200;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    flex-direction:column;
-    text-align:center;
-}
-
-.screen h1{
-    font-size:52px;
-    color:#ff3333;
-    text-shadow:0 0 20px red,0 0 40px red;
-}
-
-.screen p{
-    font-size:18px;
-}
-
-.startBtn{
-    padding:16px 30px;
-    background:#222;
-    color:white;
-    border:2px solid #aaa;
-    border-radius:12px;
-    font-size:20px;
-}
-
-.startBtn:active{
-    transform:scale(.9);
-}
-
 </style>
 </head>
 
 <body>
 
-<div id="game">
-
-<!-- START SCREEN -->
-
-<div id="start" class="screen">
-
-<h1>🥷 NINJA SURVIVAL</h1>
-
-<p>📱 Touch Enemy = Attack</p>
-<p>⚔️ Attack Button = Attack</p>
-<p>⌨️ PC = WASD / Arrow Keys</p>
-<p>❤️ Kill = +10 Health</p>
-<p>👹 Every Kill = New Enemy</p>
-<p>👑 Every 10 Kills = Boss</p>
-<p>🥷 Level 50 = Ninja 2</p>
-<p>🥷 Level 100 = Ninja 3</p>
-<p>⚔️ Unlocked Ninjas automatically attack enemies!</p>
-
-<button class="startBtn" onclick="startGame()">
-START GAME
-</button>
-
-</div>
-
-<!-- GAME OVER -->
-
-<div id="over" class="screen" style="display:none">
-
-<h1>💀 GAME OVER</h1>
-
-<p id="result"></p>
-
-<button class="startBtn" onclick="location.reload()">
-PLAY AGAIN
-</button>
-
-</div>
-
-<!-- HUD -->
+<canvas id="game"></canvas>
 
 <div id="hud">
-
-❤️ HEALTH
-
-<div id="healthBox">
-<div id="health"></div>
+    ❤️ Health: <span id="health">100</span><br>
+    💰 Coins: <span id="coins">0</span><br>
+    ⭐ Level: <span id="level">1</span><br>
+    ☠️ Kills: <span id="kills">0</span><br>
+    👹 Enemies: <span id="enemyCount">6</span><br>
+    🥷 Ninjas: <span id="ninjaCount">1</span>
 </div>
 
-🪙 Coins:
-<span id="coins">0</span>
+<div id="message"></div>
 
-<br>
-
-⭐ Level:
-<span id="level">1</span>
-
-<br>
-
-💀 Kills:
-<span id="kills">0</span>
-
-<br>
-
-👹 Enemies:
-<span id="enemyCount">0</span>
-
-<br>
-
-🥷 Ninjas:
-<span id="ninjaCount">1</span>
-
+<div class="controls">
+    <button class="btn up" data-key="up" aria-label="Move up">▲</button>
+    <button class="btn down" data-key="down" aria-label="Move down">▼</button>
+    <button class="btn left" data-key="left" aria-label="Move left">◀</button>
+    <button class="btn right" data-key="right" aria-label="Move right">▶</button>
 </div>
 
-<!-- MESSAGES -->
+<button id="attack">ATTACK</button>
 
-<div id="unlockMessage"></div>
-
-<div id="bossMessage">
-👑 BOSS HAS ARRIVED!
+<div id="gameover">
+    <h1>GAME OVER</h1>
+    <p>Level: <span id="finalLevel"></span></p>
+    <p>Kills: <span id="finalKills"></span></p>
+    <p>Coins: <span id="finalCoins"></span></p>
+    <p>Ninjas: <span id="finalNinjas"></span></p>
+    <button id="restart">RESTART</button>
 </div>
-
-<!-- MAIN NINJA -->
-
-<div id="player"></div>
-
-<!-- NINJA 2 -->
-
-<div id="ninja2" class="ninja"></div>
-
-<!-- NINJA 3 -->
-
-<div id="ninja3" class="ninja"></div>
-
-<!-- TOUCH MOVEMENT -->
-
-<div id="controls">
-
-<div class="controlRow">
-
-<button class="moveBtn" data-key="w">
-⬆️
-</button>
-
-</div>
-
-<div class="controlRow">
-
-<button class="moveBtn" data-key="a">
-⬅️
-</button>
-
-<button class="moveBtn" data-key="s">
-⬇️
-</button>
-
-<button class="moveBtn" data-key="d">
-➡️
-</button>
-
-</div>
-
-</div>
-
-<!-- ATTACK -->
-
-<button id="attack">
-⚔️
-<br>
-ATTACK
-</button>
-
-</div>
-
 
 <script>
+"use strict";
 
-/* =========================
-   GAME VARIABLES
-========================= */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-const game =
-document.getElementById("game");
+let viewWidth = innerWidth;
+let viewHeight = innerHeight;
+let dpr = 1;
 
-const player =
-document.getElementById("player");
+function resize() {
+    const oldW = viewWidth || innerWidth;
+    const oldH = viewHeight || innerHeight;
 
-const ninja2 =
-document.getElementById("ninja2");
+    viewWidth = innerWidth;
+    viewHeight = innerHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-const ninja3 =
-document.getElementById("ninja3");
+    canvas.width = Math.round(viewWidth * dpr);
+    canvas.height = Math.round(viewHeight * dpr);
 
+    canvas.style.width = viewWidth + "px";
+    canvas.style.height = viewHeight + "px";
 
-let x = innerWidth / 2;
-let y = innerHeight / 2;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    if (typeof player !== "undefined") {
+        player.x = Math.max(
+            player.r,
+            Math.min(viewWidth - player.r,
+                player.x / oldW * viewWidth)
+        );
+
+        player.y = Math.max(
+            player.r,
+            Math.min(viewHeight - player.r,
+                player.y / oldH * viewHeight)
+        );
+    }
+
+    if (typeof ninjas !== "undefined") {
+        for (const n of ninjas) {
+            n.x = Math.max(n.r, Math.min(viewWidth - n.r, n.x));
+            n.y = Math.max(n.r, Math.min(viewHeight - n.r, n.y));
+        }
+    }
+}
+
+resize();
+
+window.addEventListener("resize", resize);
+window.addEventListener("orientationchange", () => {
+    setTimeout(resize, 150);
+});
+
+/* GAME DATA */
+
+const player = {
+    x: viewWidth / 2,
+    y: viewHeight / 2,
+    r: 18,
+    speed: 4
+};
 
 let health = 100;
 let coins = 0;
@@ -597,1318 +324,570 @@ let level = 1;
 let kills = 0;
 
 let enemies = [];
+let ninjas = [];
+let keys = Object.create(null);
 
-let keys = {};
-
-let playing = false;
-let attacking = false;
-
+let gameRunning = true;
 let bossAlive = false;
+let messageTimer = 0;
+let enemySpawnTimer = null;
+let animationId = null;
 
-let ninja2Unlocked = false;
-let ninja3Unlocked = false;
+/* NINJAS */
 
-
-/* =========================
-   NINJA AUTO ATTACK
-========================= */
-
-let ninja2AttackTimer = 0;
-let ninja3AttackTimer = 0;
-
-
-/* =========================
-   START
-========================= */
-
-function startGame(){
-
-document.getElementById("start")
-.style.display="none";
-
-playing=true;
-
-
-for(let i=0;i<5;i++){
-
-spawnEnemy();
-
+function createNinja(number) {
+    return {
+        id: number,
+        x: player.x,
+        y: player.y,
+        r: 15,
+        speed: 2.6 + Math.min(number * .05, 1),
+        attackTimer: Math.random() * 20,
+        color:
+            number === 1 ? "#ff3333" :
+            number === 2 ? "#3399ff" :
+            number === 3 ? "#33ff66" :
+            `hsl(${(number * 47) % 360},80%,55%)`
+    };
 }
 
+ninjas.push(createNinja(1));
 
-updateEnemyCount();
+/* ENEMY SPAWNING */
+
+function randomEdgePosition(offset = 30) {
+    const side = Math.floor(Math.random() * 4);
+
+    if (side === 0) {
+        return { x: Math.random() * viewWidth, y: -offset };
+    }
+
+    if (side === 1) {
+        return { x: viewWidth + offset, y: Math.random() * viewHeight };
+    }
+
+    if (side === 2) {
+        return { x: Math.random() * viewWidth, y: viewHeight + offset };
+    }
+
+    return { x: -offset, y: Math.random() * viewHeight };
+}
+
+function spawnEnemy() {
+    if (!gameRunning) return;
+
+    const p = randomEdgePosition();
+
+    enemies.push({
+        x: p.x,
+        y: p.y,
+        r: 15,
+        hp: 2,
+        maxHp: 2,
+        speed: 1.1 + Math.random() * .5,
+        boss: false
+    });
+}
+
+function spawnBoss() {
+    if (bossAlive || !gameRunning) return;
+
+    bossAlive = true;
+
+    const p = randomEdgePosition(60);
+
+    enemies.push({
+        x: p.x,
+        y: p.y,
+        r: 30,
+        hp: 10,
+        maxHp: 10,
+        speed: .65,
+        boss: true
+    });
+
+    showMessage("👑 BOSS INCOMING!");
+}
+
+for (let i = 0; i < 6; i++) {
+    spawnEnemy();
+}
+
+/* MESSAGES */
+
+function showMessage(txt) {
+    const msg = document.getElementById("message");
+
+    msg.innerHTML = txt;
+    msg.style.display = "block";
+    messageTimer = 120;
+}
+
+/* LEVEL SYSTEM */
+
+function checkLevel() {
+    const requiredNinjas = Math.floor(level / 50) + 1;
+
+    while (ninjas.length < requiredNinjas) {
+        const newNumber = ninjas.length + 1;
+        ninjas.push(createNinja(newNumber));
+
+        showMessage(
+            "🥷 NEW NINJA UNLOCKED!<br>" +
+            "Ninja " + newNumber + " joined you!"
+        );
+    }
+
+    if (kills > 0 && kills % 10 === 0 && !bossAlive) {
+        spawnBoss();
+    }
+}
+
+/* COMBAT */
+
+function distance(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function damageEnemy(enemy, damage = 1) {
+    if (!enemy || !enemies.includes(enemy)) return;
+
+    enemy.hp -= damage;
+
+    if (enemy.hp <= 0) {
+        killEnemy(enemy);
+    }
+}
+
+function killEnemy(enemy) {
+    const index = enemies.indexOf(enemy);
+    if (index === -1) return;
+
+    enemies.splice(index, 1);
+
+    if (enemy.boss) {
+        bossAlive = false;
+        coins += 100;
+        kills += 5;
+        level += 5;
+        health = Math.min(100, health + 10);
+
+        showMessage("👑 BOSS DEFEATED! +100 COINS");
+    } else {
+        coins += 10;
+        kills++;
+        level++;
+        health = Math.min(100, health + 10);
+    }
+
+    checkLevel();
+
+    // Spawn another enemy after each kill.
+    if (gameRunning) {
+        clearTimeout(enemySpawnTimer);
+
+        enemySpawnTimer = setTimeout(() => {
+            if (gameRunning) spawnEnemy();
+        }, 300);
+    }
+}
+
+/* PLAYER ATTACK */
+
+function playerAttack() {
+    if (!gameRunning) return;
+
+    let target = null;
+    let closest = Infinity;
+
+    for (const e of enemies) {
+        const d = distance(player, e);
+
+        if (d < 180 && d < closest) {
+            closest = d;
+            target = e;
+        }
+    }
+
+    if (target) damageEnemy(target, 1);
+}
+
+/* NINJA AI */
+
+function updateNinjas() {
+    for (let i = 1; i < ninjas.length; i++) {
+        const n = ninjas[i];
+
+        let target = null;
+        let closest = Infinity;
+
+        for (const e of enemies) {
+            const d = distance(n, e);
+
+            if (d < closest) {
+                closest = d;
+                target = e;
+            }
+        }
+
+        if (target) {
+            const dx = target.x - n.x;
+            const dy = target.y - n.y;
+            const d = Math.hypot(dx, dy);
+
+            if (d > 58) {
+                n.x += dx / d * n.speed;
+                n.y += dy / d * n.speed;
+            } else {
+                n.attackTimer++;
+
+                const delay =
+                    i === 1 ? 18 :
+                    i === 2 ? 15 :
+                    Math.max(8, 18 - i);
+
+                if (n.attackTimer >= delay) {
+                    damageEnemy(target, 1);
+                    n.attackTimer = 0;
+                }
+            }
+        } else {
+            const row = Math.floor((i - 1) / 3);
+            const col = (i - 1) % 3;
+
+            const targetX = player.x + (col - 1) * 45;
+            const targetY = player.y + 55 + row * 45;
+
+            const dx = targetX - n.x;
+            const dy = targetY - n.y;
+            const d = Math.hypot(dx, dy);
+
+            if (d > 8) {
+                n.x += dx / d * n.speed;
+                n.y += dy / d * n.speed;
+            }
+        }
+
+        n.x = Math.max(n.r, Math.min(viewWidth - n.r, n.x));
+        n.y = Math.max(n.r, Math.min(viewHeight - n.r, n.y));
+    }
+}
+
+/* PLAYER MOVEMENT */
+
+function updatePlayer() {
+    let dx = 0;
+    let dy = 0;
+
+    if (keys.ArrowUp || keys.w || keys.W || keys.up) dy--;
+    if (keys.ArrowDown || keys.s || keys.S || keys.down) dy++;
+    if (keys.ArrowLeft || keys.a || keys.A || keys.left) dx--;
+    if (keys.ArrowRight || keys.d || keys.D || keys.right) dx++;
+
+    if (dx !== 0 || dy !== 0) {
+        const len = Math.hypot(dx, dy);
+
+        player.x += dx / len * player.speed;
+        player.y += dy / len * player.speed;
+    }
+
+    player.x = Math.max(
+        player.r,
+        Math.min(viewWidth - player.r, player.x)
+    );
+
+    player.y = Math.max(
+        player.r,
+        Math.min(viewHeight - player.r, player.y)
+    );
+}
+
+/* ENEMY MOVEMENT */
+
+function updateEnemies() {
+    for (const e of [...enemies]) {
+        const dx = player.x - e.x;
+        const dy = player.y - e.y;
+        const d = Math.hypot(dx, dy);
+
+        if (d > 1) {
+            e.x += dx / d * e.speed;
+            e.y += dy / d * e.speed;
+        }
+
+        if (d < e.r + player.r) {
+            health -= e.boss ? .25 : .12;
+
+            if (d > 0) {
+                e.x -= dx / d * 5;
+                e.y -= dy / d * 5;
+            }
+
+            if (health <= 0) {
+                health = 0;
+                endGame();
+                return;
+            }
+        }
+    }
+}
+
+/* CANVAS TAP ATTACK */
+
+function attackAt(x, y) {
+    if (!gameRunning) return;
+
+    let target = null;
+    let closest = Infinity;
+
+    for (const e of enemies) {
+        const d = Math.hypot(e.x - x, e.y - y);
+
+        if (d < e.r + 35 && d < closest) {
+            closest = d;
+            target = e;
+        }
+    }
+
+    if (target) damageEnemy(target, 1);
+}
+
+canvas.addEventListener("pointerdown", e => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+
+    attackAt(e.clientX, e.clientY);
+});
+
+/* KEYBOARD */
+
+window.addEventListener("keydown", e => {
+    if ([
+        "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "
+    ].includes(e.key)) {
+        e.preventDefault();
+    }
+
+    keys[e.key] = true;
+
+    if (e.key === " ") playerAttack();
+});
+
+window.addEventListener("keyup", e => {
+    keys[e.key] = false;
+});
+
+window.addEventListener("blur", () => {
+    keys = Object.create(null);
+});
+
+/* MOBILE CONTROLS */
+
+document.querySelectorAll(".btn").forEach(btn => {
+    const key = btn.dataset.key;
+
+    btn.addEventListener("pointerdown", e => {
+        e.preventDefault();
+        keys[key] = true;
+
+        try {
+            btn.setPointerCapture(e.pointerId);
+        } catch (_) {}
+    });
+
+    function release(e) {
+        e.preventDefault();
+        keys[key] = false;
+    }
+
+    btn.addEventListener("pointerup", release);
+    btn.addEventListener("pointercancel", release);
+
+    btn.addEventListener("lostpointercapture", () => {
+        keys[key] = false;
+    });
+});
+
+document.getElementById("attack").addEventListener("pointerdown", e => {
+    e.preventDefault();
+    playerAttack();
+});
+
+/* DRAW NINJAS */
+
+function drawNinja(n, number) {
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+    ctx.fillStyle = n.color;
+    ctx.fill();
+
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(n.x - 8, n.y - 4, 5, 3);
+    ctx.fillRect(n.x + 3, n.y - 4, 5, 3);
+
+    if (number > 1) {
+        ctx.fillStyle = "white";
+        ctx.font = "bold 10px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(number, n.x, n.y + 22);
+    }
+
+    ctx.restore();
+}
+
+/* DRAW ENEMIES */
+
+function drawEnemy(e) {
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+    ctx.fillStyle = e.boss ? "#8e24aa" : "#e53935";
+    ctx.fill();
+
+    ctx.strokeStyle = e.boss ? "#ffea00" : "#ff9999";
+    ctx.lineWidth = e.boss ? 4 : 2;
+    ctx.stroke();
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(e.x - e.r * .45, e.y - e.r * .15, 6, 5);
+    ctx.fillRect(e.x + e.r * .15, e.y - e.r * .15, 6, 5);
+
+    if (e.boss) {
+        ctx.fillStyle = "#ffd700";
+        ctx.beginPath();
+        ctx.moveTo(e.x - 22, e.y - e.r - 5);
+        ctx.lineTo(e.x - 12, e.y - e.r - 22);
+        ctx.lineTo(e.x, e.y - e.r - 8);
+        ctx.lineTo(e.x + 12, e.y - e.r - 22);
+        ctx.lineTo(e.x + 22, e.y - e.r - 5);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    const barWidth = e.boss ? 70 : 42;
+    const barHeight = 7;
+    const hpPercent = Math.max(0, e.hp / e.maxHp);
+    const barX = e.x - barWidth / 2;
+    const barY = e.y - e.r - 18;
+
+    ctx.fillStyle = "#222";
+    ctx.fillRect(barX, barY, barWidth, barHeight);
+
+    ctx.fillStyle = e.boss ? "#ff00ff" : "#00ff44";
+    ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
+
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(barX, barY, barWidth, barHeight);
+
+    if (e.boss) {
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 12px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("BOSS", e.x, e.y + e.r + 18);
+    }
+
+    ctx.restore();
+}
+
+/* BACKGROUND */
+
+function drawBackground() {
+    ctx.fillStyle = "#101b10";
+    ctx.fillRect(0, 0, viewWidth, viewHeight);
+
+    ctx.strokeStyle = "rgba(255,255,255,.035)";
+    ctx.lineWidth = 1;
+
+    for (let x = 0; x < viewWidth; x += 50) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, viewHeight);
+        ctx.stroke();
+    }
+
+    for (let y = 0; y < viewHeight; y += 50) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(viewWidth, y);
+        ctx.stroke();
+    }
+}
+
+/* HUD */
+
+function updateHUD() {
+    document.getElementById("health").textContent = Math.floor(health);
+    document.getElementById("coins").textContent = coins;
+    document.getElementById("level").textContent = level;
+    document.getElementById("kills").textContent = kills;
+    document.getElementById("enemyCount").textContent = enemies.length;
+    document.getElementById("ninjaCount").textContent = ninjas.length;
+}
+
+/* GAME OVER */
+
+function endGame() {
+    if (!gameRunning) return;
+
+    gameRunning = false;
+    clearTimeout(enemySpawnTimer);
+
+    document.getElementById("finalLevel").textContent = level;
+    document.getElementById("finalKills").textContent = kills;
+    document.getElementById("finalCoins").textContent = coins;
+    document.getElementById("finalNinjas").textContent = ninjas.length;
+
+    document.getElementById("gameover").style.display = "flex";
+}
+
+document.getElementById("restart").addEventListener("click", () => {
+    location.reload();
+});
+
+/* MAIN GAME LOOP */
+
+function gameLoop() {
+    if (!gameRunning) return;
+
+    updatePlayer();
+    updateEnemies();
+
+    if (!gameRunning) return;
+
+    updateNinjas();
+
+    drawBackground();
+
+    for (const e of enemies) {
+        drawEnemy(e);
+    }
+
+    for (let i = 0; i < ninjas.length; i++) {
+        drawNinja(ninjas[i], i + 1);
+    }
+
+    if (messageTimer > 0) {
+        messageTimer--;
+
+        if (messageTimer <= 0) {
+            document.getElementById("message").style.display = "none";
+        }
+    }
+
+    updateHUD();
+
+    animationId = requestAnimationFrame(gameLoop);
+}
 
 gameLoop();
-
-}
-
-
-/* =========================
-   KEYBOARD
-========================= */
-
-document.addEventListener(
-"keydown",
-function(e){
-
-keys[e.key.toLowerCase()] = true;
-
-
-if(e.code==="Space"){
-
-e.preventDefault();
-
-attackClosest();
-
-}
-
-});
-
-
-document.addEventListener(
-"keyup",
-function(e){
-
-keys[e.key.toLowerCase()] = false;
-
-});
-
-
-/* =========================
-   TOUCH MOVEMENT
-========================= */
-
-document.querySelectorAll(".moveBtn")
-.forEach(function(button){
-
-const key =
-button.dataset.key;
-
-
-button.addEventListener(
-"touchstart",
-function(e){
-
-e.preventDefault();
-
-keys[key]=true;
-
-});
-
-
-button.addEventListener(
-"touchend",
-function(e){
-
-e.preventDefault();
-
-keys[key]=false;
-
-});
-
-
-button.addEventListener(
-"mousedown",
-function(){
-
-keys[key]=true;
-
-});
-
-
-button.addEventListener(
-"mouseup",
-function(){
-
-keys[key]=false;
-
-});
-
-});
-
-
-/* =========================
-   ATTACK BUTTON
-========================= */
-
-const attackButton =
-document.getElementById("attack");
-
-
-attackButton.addEventListener(
-"touchstart",
-function(e){
-
-e.preventDefault();
-
-attackClosest();
-
-});
-
-
-attackButton.addEventListener(
-"mousedown",
-function(e){
-
-e.preventDefault();
-
-attackClosest();
-
-});
-
-
-/* =========================
-   SPAWN ENEMY
-========================= */
-
-function spawnEnemy(){
-
-const enemy =
-document.createElement("div");
-
-enemy.className="enemy";
-
-
-const hpBar =
-document.createElement("div");
-
-hpBar.className="enemyHP";
-
-
-const hpFill =
-document.createElement("div");
-
-hpFill.className="enemyHPFill";
-
-hpBar.appendChild(hpFill);
-
-enemy.appendChild(hpBar);
-
-
-let ex;
-let ey;
-
-
-do{
-
-ex =
-Math.random() *
-(innerWidth-70)+30;
-
-ey =
-Math.random() *
-(innerHeight-160)+70;
-
-}
-while(
-Math.abs(ex-x)<200 &&
-Math.abs(ey-y)<200
-);
-
-
-enemy.style.left =
-ex+"px";
-
-enemy.style.top =
-ey+"px";
-
-
-game.appendChild(enemy);
-
-
-const enemyData = {
-
-el:enemy,
-
-x:ex,
-
-y:ey,
-
-hp:2,
-
-maxHp:2,
-
-boss:false,
-
-hpFill:hpFill
-
-};
-
-
-enemies.push(enemyData);
-
-
-/* TOUCH */
-
-enemy.addEventListener(
-"touchstart",
-function(e){
-
-e.preventDefault();
-
-attackTarget(enemyData);
-
-});
-
-
-/* MOUSE */
-
-enemy.addEventListener(
-"mousedown",
-function(e){
-
-e.preventDefault();
-
-attackTarget(enemyData);
-
-});
-
-}
-
-
-/* =========================
-   BOSS
-========================= */
-
-function spawnBoss(){
-
-if(bossAlive) return;
-
-bossAlive=true;
-
-
-const boss =
-document.createElement("div");
-
-boss.className="boss";
-
-
-const hpBar =
-document.createElement("div");
-
-hpBar.className="bossHP";
-
-
-const hpFill =
-document.createElement("div");
-
-hpFill.className="bossHPFill";
-
-hpBar.appendChild(hpFill);
-
-boss.appendChild(hpBar);
-
-
-let bx;
-let by;
-
-
-do{
-
-bx =
-Math.random() *
-(innerWidth-120)+60;
-
-by =
-Math.random() *
-(innerHeight-200)+80;
-
-}
-while(
-Math.abs(bx-x)<300 &&
-Math.abs(by-y)<300
-);
-
-
-boss.style.left =
-bx+"px";
-
-boss.style.top =
-by+"px";
-
-
-game.appendChild(boss);
-
-
-const bossData = {
-
-el:boss,
-
-x:bx,
-
-y:by,
-
-hp:10,
-
-maxHp:10,
-
-boss:true,
-
-hpFill:hpFill
-
-};
-
-
-enemies.push(bossData);
-
-
-/* TOUCH */
-
-boss.addEventListener(
-"touchstart",
-function(e){
-
-e.preventDefault();
-
-attackTarget(bossData);
-
-});
-
-
-/* MOUSE */
-
-boss.addEventListener(
-"mousedown",
-function(e){
-
-e.preventDefault();
-
-attackTarget(bossData);
-
-});
-
-
-document.getElementById(
-"bossMessage"
-).style.display="block";
-
-
-setTimeout(function(){
-
-document.getElementById(
-"bossMessage"
-).style.display="none";
-
-},2000);
-
-
-updateEnemyCount();
-
-}
-
-
-/* =========================
-   PLAYER ATTACK
-========================= */
-
-function attackClosest(){
-
-if(!playing) return;
-
-let target=null;
-
-let closest=180;
-
-
-enemies.forEach(function(enemy){
-
-let dx =
-enemy.x-x;
-
-let dy =
-enemy.y-y;
-
-let distance =
-Math.sqrt(dx*dx+dy*dy);
-
-
-if(distance<closest){
-
-closest=distance;
-
-target=enemy;
-
-}
-
-});
-
-
-if(target){
-
-attackTarget(target);
-
-}
-
-}
-
-
-/* =========================
-   DAMAGE ENEMY
-========================= */
-
-function attackTarget(target){
-
-if(!playing) return;
-
-if(attacking) return;
-
-if(!enemies.includes(target)) return;
-
-
-attacking=true;
-
-
-target.hp -= 1;
-
-
-updateEnemyHP(target);
-
-
-target.el.style.transform =
-"scale(1.35)";
-
-
-showHit(
-target.x,
-target.y,
-"-1"
-);
-
-
-setTimeout(function(){
-
-if(target.el){
-
-target.el.style.transform =
-"scale(1)";
-
-}
-
-},100);
-
-
-if(target.hp<=0){
-
-killEnemy(target);
-
-}
-
-
-setTimeout(function(){
-
-attacking=false;
-
-},180);
-
-}
-
-
-/* =========================
-   UPDATE HP
-========================= */
-
-function updateEnemyHP(target){
-
-let percent =
-(target.hp/target.maxHp)*100;
-
-
-target.hpFill.style.width =
-Math.max(0,percent)+"%";
-
-
-if(percent<=25){
-
-target.hpFill.style.background=
-"#ff1744";
-
-}
-else if(percent<=60){
-
-target.hpFill.style.background=
-"#ff9800";
-
-}
-else{
-
-target.hpFill.style.background=
-"#20e64b";
-
-}
-
-}
-
-
-/* =========================
-   KILL ENEMY
-========================= */
-
-function killEnemy(target){
-
-target.el.remove();
-
-
-const index =
-enemies.indexOf(target);
-
-
-if(index>-1){
-
-enemies.splice(index,1);
-
-}
-
-
-/* REWARD */
-
-if(target.boss){
-
-coins += 100;
-
-kills += 5;
-
-level += 5;
-
-bossAlive=false;
-
-}
-else{
-
-coins += 10;
-
-kills++;
-
-level++;
-
-}
-
-
-/* HEALTH */
-
-health =
-Math.min(100,health+10);
-
-
-document.getElementById(
-"health"
-).style.width =
-health+"%";
-
-
-document.getElementById(
-"coins"
-).textContent =
-coins;
-
-
-document.getElementById(
-"kills"
-).textContent =
-kills;
-
-
-document.getElementById(
-"level"
-).textContent =
-level;
-
-
-checkNinjaUnlocks();
-
-updateEnemyCount();
-
-
-/* BOSS */
-
-if(
-kills>0 &&
-kills%10===0 &&
-!bossAlive
-){
-
-setTimeout(
-spawnBoss,
-500
-);
-
-}
-else{
-
-setTimeout(function(){
-
-if(playing){
-
-spawnEnemy();
-
-updateEnemyCount();
-
-}
-
-},300);
-
-}
-
-}
-
-
-/* =========================
-   NINJA UNLOCK
-========================= */
-
-function checkNinjaUnlocks(){
-
-/* LEVEL 50 */
-
-if(
-level>=50 &&
-!ninja2Unlocked
-){
-
-ninja2Unlocked=true;
-
-ninja2.style.display="block";
-
-
-document.getElementById(
-"ninjaCount"
-).textContent="2";
-
-
-showUnlock(
-"🥷 NINJA 2 UNLOCKED!",
-"⚔️ Ninja 2 will attack enemies automatically!"
-);
-
-}
-
-
-/* LEVEL 100 */
-
-if(
-level>=100 &&
-!ninja3Unlocked
-){
-
-ninja3Unlocked=true;
-
-ninja3.style.display="block";
-
-
-document.getElementById(
-"ninjaCount"
-).textContent="3";
-
-
-showUnlock(
-"🥷 NINJA 3 UNLOCKED!",
-"⚔️ Ninja 3 will attack enemies automatically!"
-);
-
-}
-
-}
-
-
-/* =========================
-   UNLOCK MESSAGE
-========================= */
-
-function showUnlock(title,sub){
-
-const msg =
-document.getElementById(
-"unlockMessage"
-);
-
-
-msg.innerHTML =
-title+
-"<br><span style='font-size:20px;color:white'>"+
-sub+
-"</span>";
-
-
-msg.style.display="block";
-
-
-setTimeout(function(){
-
-msg.style.display="none";
-
-},3000);
-
-}
-
-
-/* =========================
-   FIND CLOSEST ENEMY
-========================= */
-
-function findClosestEnemy(nx,ny){
-
-let target=null;
-
-let closest=999999;
-
-
-enemies.forEach(function(enemy){
-
-let dx =
-enemy.x-nx;
-
-let dy =
-enemy.y-ny;
-
-let distance =
-Math.sqrt(dx*dx+dy*dy);
-
-
-if(distance<closest){
-
-closest=distance;
-
-target=enemy;
-
-}
-
-});
-
-
-return target;
-
-}
-
-
-/* =========================
-   NINJA AUTO ATTACK
-========================= */
-
-function ninjaAutoAttack(){
-
-/* NINJA 2 */
-
-if(
-ninja2Unlocked &&
-enemies.length>0
-){
-
-let nx =
-parseFloat(ninja2.style.left) || x-75;
-
-let ny =
-parseFloat(ninja2.style.top) || y+10;
-
-
-let target =
-findClosestEnemy(nx,ny);
-
-
-if(target){
-
-let dx =
-target.x-nx;
-
-let dy =
-target.y-ny;
-
-let distance =
-Math.sqrt(dx*dx+dy*dy);
-
-
-/* MOVE TO ENEMY */
-
-if(distance>60){
-
-let speed=2.8;
-
-nx +=
-(dx/distance)*speed;
-
-ny +=
-(dy/distance)*speed;
-
-
-ninja2.style.left =
-nx+"px";
-
-ninja2.style.top =
-ny+"px";
-
-}
-else{
-
-/* ATTACK */
-
-ninja2AttackTimer++;
-
-
-if(ninja2AttackTimer>=18){
-
-ninja2AttackTimer=0;
-
-autoNinjaAttack(
-target,
-ninja2
-);
-
-}
-
-}
-
-}
-
-}
-
-
-/* NINJA 3 */
-
-if(
-ninja3Unlocked &&
-enemies.length>0
-){
-
-let nx =
-parseFloat(ninja3.style.left) || x+65;
-
-let ny =
-parseFloat(ninja3.style.top) || y+10;
-
-
-let target =
-findClosestEnemy(nx,ny);
-
-
-if(target){
-
-let dx =
-target.x-nx;
-
-let dy =
-target.y-ny;
-
-let distance =
-Math.sqrt(dx*dx+dy*dy);
-
-
-/* MOVE */
-
-if(distance>60){
-
-let speed=3.0;
-
-nx +=
-(dx/distance)*speed;
-
-ny +=
-(dy/distance)*speed;
-
-
-ninja3.style.left =
-nx+"px";
-
-ninja3.style.top =
-ny+"px";
-
-}
-else{
-
-/* ATTACK */
-
-ninja3AttackTimer++;
-
-
-if(ninja3AttackTimer>=15){
-
-ninja3AttackTimer=0;
-
-autoNinjaAttack(
-target,
-ninja3
-);
-
-}
-
-}
-
-}
-
-}
-
-}
-
-
-/* =========================
-   NINJA ATTACK
-========================= */
-
-function autoNinjaAttack(target,ninja){
-
-if(!playing) return;
-
-if(!enemies.includes(target)) return;
-
-
-/* DAMAGE */
-
-target.hp -= 1;
-
-
-/* HP BAR */
-
-updateEnemyHP(target);
-
-
-/* VISUAL */
-
-ninja.classList.add(
-"ninjaAttack"
-);
-
-
-setTimeout(function(){
-
-ninja.classList.remove(
-"ninjaAttack"
-);
-
-},150);
-
-
-/* DAMAGE TEXT */
-
-showHit(
-target.x,
-target.y,
-"⚔️ -1"
-);
-
-
-/* KILL */
-
-if(target.hp<=0){
-
-killEnemy(target);
-
-}
-
-}
-
-
-/* =========================
-   HIT TEXT
-========================= */
-
-function showHit(px,py,text){
-
-const hit =
-document.createElement("div");
-
-hit.className="hit";
-
-hit.textContent=text;
-
-hit.style.left =
-px+"px";
-
-hit.style.top =
-py+"px";
-
-
-game.appendChild(hit);
-
-
-setTimeout(function(){
-
-hit.remove();
-
-},500);
-
-}
-
-
-/* =========================
-   PLAYER MOVEMENT
-========================= */
-
-function movePlayer(){
-
-let speed=5;
-
-
-if(keys["w"] ||
-keys["arrowup"]){
-
-y-=speed;
-
-}
-
-if(keys["s"] ||
-keys["arrowdown"]){
-
-y+=speed;
-
-}
-
-if(keys["a"] ||
-keys["arrowleft"]){
-
-x-=speed;
-
-}
-
-if(keys["d"] ||
-keys["arrowright"]){
-
-x+=speed;
-
-}
-
-
-/* BOUNDARY */
-
-x=Math.max(
-25,
-Math.min(innerWidth-25,x)
-);
-
-
-y=Math.max(
-70,
-Math.min(innerHeight-70,y)
-);
-
-
-player.style.left =
-x+"px";
-
-player.style.top =
-y+"px";
-
-
-/*
-NINJA 2 START POSITION
-ONLY BEFORE IT FINDS AN ENEMY
-*/
-
-if(
-ninja2Unlocked &&
-enemies.length===0
-){
-
-ninja2.style.left =
-(x-75)+"px";
-
-ninja2.style.top =
-(y+10)+"px";
-
-}
-
-
-/*
-NINJA 3 START POSITION
-*/
-
-if(
-ninja3Unlocked &&
-enemies.length===0
-){
-
-ninja3.style.left =
-(x+65)+"px";
-
-ninja3.style.top =
-(y+10)+"px";
-
-}
-
-}
-
-
-/* =========================
-   ENEMY MOVEMENT
-========================= */
-
-function moveEnemies(){
-
-enemies.forEach(function(enemy){
-
-let dx =
-x-enemy.x;
-
-let dy =
-y-enemy.y;
-
-let distance =
-Math.sqrt(dx*dx+dy*dy);
-
-
-if(distance>45){
-
-let speed;
-
-
-if(enemy.boss){
-
-speed =
-0.7+
-level*0.03;
-
-}
-else{
-
-speed =
-1.2+
-level*0.08;
-
-}
-
-
-enemy.x +=
-(dx/distance)*speed;
-
-enemy.y +=
-(dy/distance)*speed;
-
-}
-else{
-
-if(enemy.boss){
-
-health-=0.45;
-
-}
-else{
-
-health-=0.3;
-
-}
-
-
-health=Math.max(
-0,
-health
-);
-
-
-document.getElementById(
-"health"
-).style.width =
-health+"%";
-
-
-if(health<=0){
-
-gameOver();
-
-}
-
-}
-
-
-enemy.el.style.left =
-enemy.x+"px";
-
-enemy.el.style.top =
-enemy.y+"px";
-
-});
-
-}
-
-
-/* =========================
-   ENEMY COUNT
-========================= */
-
-function updateEnemyCount(){
-
-document.getElementById(
-"enemyCount"
-).textContent =
-enemies.length;
-
-}
-
-
-/* =========================
-   GAME LOOP
-========================= */
-
-function gameLoop(){
-
-if(!playing) return;
-
-
-movePlayer();
-
-moveEnemies();
-
-ninjaAutoAttack();
-
-
-requestAnimationFrame(
-gameLoop
-);
-
-}
-
-
-/* =========================
-   GAME OVER
-========================= */
-
-function gameOver(){
-
-playing=false;
-
-
-document.getElementById(
-"over"
-).style.display="flex";
-
-
-document.getElementById(
-"result"
-).textContent =
-
-"⭐ Level: "+
-level+
-
-" | 💀 Kills: "+
-kills+
-
-" | 🪙 Coins: "+
-coins+
-
-" | 🥷 Ninjas: "+
-(ninja3Unlocked ? 3 :
-ninja2Unlocked ? 2 : 1);
-
-}
-
-
-/* =========================
-   RESIZE
-========================= */
-
-window.addEventListener(
-"resize",
-function(){
-
-x=Math.min(
-x,
-innerWidth-25
-);
-
-y=Math.min(
-y,
-innerHeight-70
-);
-
-});
-
 </script>
 
 </body>
 </html>
-```
